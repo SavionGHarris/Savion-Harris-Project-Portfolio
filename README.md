@@ -9,8 +9,8 @@ My long-term goal is to design advanced robotic systems and contribute to innova
 ## Featured Projects 
 ### Autonomous RC Vehicle with ToF Sensor Navigation 
 Tracked robotic vehicle controlled by an Arduino using dual BTS7960 motor drivers. Features manual joystick control and autonomous navigation using a Time-of-Flight distance sensor for obstacle detection and avoidance.
-Focus areas:
 
+#### Focus areas:
 - Embedded systems
 - Control logic design
 - Sensor integration
@@ -19,8 +19,7 @@ Focus areas:
 ### MHD Thruster Research 
 Experimental electromagnetic propulsion research using Halbach arrays, electrode systems, and magnetic field modeling.
 
-## Skills Used
-
+#### Skills Used
 - Applied electromagnetics and field interaction analysis  
 - Halbach array configuration and flux concentration techniques  
 - Magnetic field simulation using FEMM  
@@ -41,7 +40,6 @@ Experimental electromagnetic propulsion research using Halbach arrays, electrode
 
 
 ## Technical Skills
-
 ### Hardware
 - Arduino & embedded systems
 - Motor drivers and motor control
