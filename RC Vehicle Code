@@ -1,0 +1,121 @@
+## Code-Basic 
+#include <IRremote.hpp>
+
+// -------- Motor Pins (OSOYOO Shield) --------
+#define speedPinR 5
+#define RightMotorDirPin1 7
+#define RightMotorDirPin2 8
+
+#define speedPinL 6
+#define LeftMotorDirPin1 9
+#define LeftMotorDirPin2 10
+
+// -------- IR Receiver --------
+#define IR_PIN 12
+
+// -------- Your IR Commands --------
+#define IR_ADVANCE 0x18  // UP
+#define IR_BACK    0x52  // DOWN
+#define IR_LEFT    0x08  // LEFT
+#define IR_RIGHT   0x5A  // RIGHT
+#define IR_STOP    0x1C  // OK
+
+int motorSpeed = 200;  // 0–255
+
+// Hold-to-drive settings
+const unsigned long HOLD_TIMEOUT_MS = 220;  // 150–300ms is typical
+unsigned long lastIRTime = 0;
+uint8_t lastMoveCmd = IR_STOP;              // remembers last direction while holding
+
+void setup() {
+  pinMode(speedPinR, OUTPUT);
+  pinMode(RightMotorDirPin1, OUTPUT);
+  pinMode(RightMotorDirPin2, OUTPUT);
+
+  pinMode(speedPinL, OUTPUT);
+  pinMode(LeftMotorDirPin1, OUTPUT);
+  pinMode(LeftMotorDirPin2, OUTPUT);
+
+  Serial.begin(9600);
+  IrReceiver.begin(IR_PIN, ENABLE_LED_FEEDBACK);
+
+  stop_Stop();
+  Serial.println("Hold-to-drive ready (D12). Hold arrows to move; release to stop.");
+}
+
+void loop() {
+  // 1) Read IR if available
+  if (IrReceiver.decode()) {
+    // IRremote v4: command is in decodedIRData.command
+    uint8_t cmd = IrReceiver.decodedIRData.command;
+
+    // Some remotes send "repeat" frames while holding.
+    // IRremote indicates repeats via flags. If it's a repeat frame, keep using lastMoveCmd.
+    if (IrReceiver.decodedIRData.flags & IRDATA_FLAGS_IS_REPEAT) {
+      cmd = lastMoveCmd; // keep driving in last direction while holding
+    }
+
+    // Debug (optional)
+    Serial.print("CMD: 0x");
+    Serial.print(cmd, HEX);
+    if (IrReceiver.decodedIRData.flags & IRDATA_FLAGS_IS_REPEAT) Serial.print(" (repeat)");
+    Serial.println();
+
+    // 2) Act on command
+    if (cmd == IR_ADVANCE) { go_Advance(); lastMoveCmd = cmd; lastIRTime = millis(); }
+    else if (cmd == IR_BACK) { go_Back(); lastMoveCmd = cmd; lastIRTime = millis(); }
+    else if (cmd == IR_LEFT) { go_Left(); lastMoveCmd = cmd; lastIRTime = millis(); }
+    else if (cmd == IR_RIGHT) { go_Right(); lastMoveCmd = cmd; lastIRTime = millis(); }
+    else if (cmd == IR_STOP) { stop_Stop(); lastMoveCmd = IR_STOP; }
+
+    IrReceiver.resume();
+  }
+
+  // 3) Auto-stop if you’re not holding a direction button
+  if (lastMoveCmd != IR_STOP && (millis() - lastIRTime > HOLD_TIMEOUT_MS)) {
+    stop_Stop();
+    lastMoveCmd = IR_STOP;
+  }
+}
+
+// -------- Motor Functions --------
+void go_Advance() {
+  digitalWrite(RightMotorDirPin1, LOW);
+  digitalWrite(RightMotorDirPin2, HIGH);
+  digitalWrite(LeftMotorDirPin1, LOW);
+  digitalWrite(LeftMotorDirPin2, HIGH);
+  analogWrite(speedPinR, motorSpeed);
+  analogWrite(speedPinL, motorSpeed);
+}
+
+void go_Back() {
+  digitalWrite(RightMotorDirPin1, HIGH);
+  digitalWrite(RightMotorDirPin2, LOW);
+  digitalWrite(LeftMotorDirPin1, HIGH);
+  digitalWrite(LeftMotorDirPin2, LOW);
+  analogWrite(speedPinR, motorSpeed);
+  analogWrite(speedPinL, motorSpeed);
+}
+
+void go_Left() {
+  digitalWrite(RightMotorDirPin1, LOW);
+  digitalWrite(RightMotorDirPin2, HIGH);
+  digitalWrite(LeftMotorDirPin1, HIGH);
+  digitalWrite(LeftMotorDirPin2, LOW);
+  analogWrite(speedPinR, motorSpeed);
+  analogWrite(speedPinL, motorSpeed);
+}
+
+void go_Right() {
+  digitalWrite(RightMotorDirPin1, HIGH);
+  digitalWrite(RightMotorDirPin2, LOW);
+  digitalWrite(LeftMotorDirPin1, LOW);
+  digitalWrite(LeftMotorDirPin2, HIGH);
+  analogWrite(speedPinR, motorSpeed);
+  analogWrite(speedPinL, motorSpeed);
+}
+
+void stop_Stop() {
+  analogWrite(speedPinR, 0);
+  analogWrite(speedPinL, 0);
+}
